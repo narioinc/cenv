@@ -1,0 +1,30 @@
+{
+    "DEV":{
+        "host": "dev_hostname",
+        "envVars":{
+            "var1": "dev_value",
+            "var2": "dev_value"
+        }
+    },
+    "QA": {
+        "host": "qa_hostname",
+        "envVars":{
+            "var1": "qa_value",
+            "var2": "qa_value"
+        }
+    },
+    "STAGING": {
+        "host": "staging_hostname",
+        "envVars":{
+            "var1": "staging_value",
+            "var2": "staging_value"
+        }
+    },
+    "LOCAL":{
+        "host": "localhost",
+        "envVars":{
+            "var1": "local_value",
+            "var2": "local_value"
+        }
+    }
+}
