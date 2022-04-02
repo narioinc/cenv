@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
-const yargs = require("yargs");
+const yargs = require("yargs")(process.argv.slice(2));
 var hostile = require('hostile')
 const chalk = require("chalk");
 const boxen = require("boxen");
 var cmd = require('node-cmd');
 const fs = require('fs');
 const os = require('os');
-const { Console, dir } = require("console");
-const { env } = require("process");
+const child_process = require('child_process');
+
+
 
 let cenvConfig
 let configData
@@ -57,6 +58,22 @@ getOS = () => {
 }
 
 const hostOS = getOS()
+
+function isCurrentUserRoot() {
+    if (process.platform !== 'win32') {
+		return process.getuid == 0;
+	}
+
+    try {
+        child_process.execFileSync( "net", ["session"], { "stdio": "ignore" } );
+        isElevated = true;
+    }
+    catch ( e ) {
+        isElevated = false;
+    }
+
+    return isElevated;
+}
 
 //***********************************
 // HOSTS section
@@ -191,6 +208,12 @@ const options = yargs
     .option("g", { alias: "get-environment", describe: `Show the current active environment`, type: "boolean", demandOption: false })
     .check((argv, options) => {
         const envs = getAllEnvs();
+
+        if(Object.keys(argv).length == 2){
+            yargs.showHelp();
+            process.exit();
+        }
+
         if (argv.env) { 
         if (envs.includes(argv.env)) {
             return true;
@@ -201,6 +224,11 @@ const options = yargs
     return true;
  })
  .argv;
+
+if(!isCurrentUserRoot()){
+    console.log(boxen(chalk.red("Dragons ahead, need ROOT !!!")));
+    process.exit();
+}
 
 setEnv(options.env)
 showEnv(options.g);
