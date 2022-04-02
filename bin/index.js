@@ -29,7 +29,7 @@ import ora from 'ora';
 let cenvConfig
 let configData
 let hostOS;
-const spinner = ora('Activating environment').start();
+let spinner;
 
 
 //********************************
@@ -235,12 +235,12 @@ var getActiveEnv = () => {
 //***********************************
 
 var setEnv = function (environment) {
+    spinner = ora('Activating environment').start();
     hostOS = getOS();
     if (environment) {
         const message = `Activating ${options.env} environment for project ${getProject()}`;
         spinner.stopAndPersist({symbol: '✔', text : message}).start();
-        //console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
-
+        
         const host = cenvConfig[environment].host;
         resetHosts();
         if (getAllEnvs().includes(environment)) {
