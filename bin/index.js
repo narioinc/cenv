@@ -9,7 +9,6 @@ const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
 var AWS = require('aws-sdk')
-var client = new AWS.SecretsManager({});
 
 
 let cenvConfig
@@ -17,16 +16,15 @@ let configData
 
 try {
     configData = fs.readFileSync('.cenv');
-}catch(err){
+} catch (err) {
     const message = `.cenv file not found in current path`;
     console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
     process.exit();
 }
 
-if(configData && configData.length > 0)
-{
-   cenvConfig  = JSON.parse(configData);
-}else{
+if (configData && configData.length > 0) {
+    cenvConfig = JSON.parse(configData);
+} else {
     const message = `.cenv file couldn't be processed....exiting`;
     console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
     process.exit();
@@ -62,14 +60,14 @@ const hostOS = getOS()
 
 function isCurrentUserRoot() {
     if (process.platform !== 'win32') {
-		return process.getuid == 0;
-	}
+        return process.getuid == 0;
+    }
 
     try {
-        child_process.execFileSync( "net", ["session"], { "stdio": "ignore" } );
+        child_process.execFileSync("net", ["session"], { "stdio": "ignore" });
         isElevated = true;
     }
-    catch ( e ) {
+    catch (e) {
         isElevated = false;
     }
 
@@ -156,6 +154,36 @@ setEnvVars = (env) => {
     console.log('environment variables changed successfully!')
 }
 
+setSecretsEnvVars = (env) => {
+    if(!options.s) return;
+    var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
+    var secEnvVars = cenvConfig[env].envVars.secrets;
+    secEnvVars.forEach((secret) => {
+        //console.log(secret);
+        client.getSecretValue({ SecretId: secret }, function (err, data) {
+            if (err) {
+                console.log("There was an issue processing your secrets, check configuration and try again.")
+                return;
+            } else {
+                var secretsString = data.SecretString;
+                var cloudSecrets = JSON.parse(secretsString);
+                for (const [key, value] of Object.entries(cloudSecrets)) {
+                    var command
+                    if (hostOS == 'linux') {
+                        command = `export ${key}=${value}`
+                    }
+                    else if (hostOS == 'win32') {
+                        command = `setx ${key} \"${value}\"`
+                    }
+                    cmd.runSync(command);
+                }
+                console.log('secrets mounted to environment variables successfully')
+            }
+
+        })
+    })
+}
+
 setActiveEnv = (environment) => {
     var command = "";
 
@@ -190,6 +218,7 @@ var setEnv = function (environment) {
             throw new Error(`Please use valid env types: ${getAllEnvs()}`)
         }
         setEnvVars(environment);
+        setSecretsEnvVars(environment);
         setActiveEnv(environment);
     }
 
@@ -207,26 +236,27 @@ const options = yargs
     .usage("Usage: --env <environment> <flags>")
     .option("env", { alias: "environment", describe: `The environment to activate. Choices are ${getAllEnvs()}`, type: "string", demandOption: false })
     .option("g", { alias: "get-environment", describe: `Show the current active environment`, type: "boolean", demandOption: false })
+    .option("s", { alias: "secrets", describe: `Load secrets as well into environment variables`, type: "boolean", demandOption: false })
     .check((argv, options) => {
         const envs = getAllEnvs();
 
-        if(Object.keys(argv).length == 2){
+        if (Object.keys(argv).length == 2) {
             yargs.showHelp();
             process.exit();
         }
 
-        if (argv.env) { 
-        if (envs.includes(argv.env)) {
-            return true;
-        } else {
-            throw new Error(`Please use valid env types: ${getAllEnvs()}`)
+        if (argv.env) {
+            if (envs.includes(argv.env)) {
+                return true;
+            } else {
+                throw new Error(`Please use valid env types: ${getAllEnvs()}`)
+            }
         }
-    }
-    return true;
- })
- .argv;
+        return true;
+    })
+    .argv;
 
-if(!isCurrentUserRoot()){
+if (!isCurrentUserRoot()) {
     console.log(boxen(chalk.red("Dragons ahead, need ROOT !!!")));
     process.exit();
 }
