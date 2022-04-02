@@ -8,7 +8,8 @@ var cmd = require('node-cmd');
 const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
-
+var AWS = require('aws-sdk')
+var client = new AWS.SecretsManager({});
 
 
 let cenvConfig
@@ -140,7 +141,7 @@ removeHosts = (url) => {
 //***********************************
 
 setEnvVars = (env) => {
-    var envVars = cenvConfig[env].envVars;
+    var envVars = cenvConfig[env].envVars.plain;
 
     for (const [key, value] of Object.entries(envVars)) {
         var command
@@ -150,8 +151,8 @@ setEnvVars = (env) => {
         else if (hostOS == 'win32') {
             command = `setx ${key} \"${value}\"`
         }
+        cmd.runSync(command);
     }
-    cmd.runSync(command);
     console.log('environment variables changed successfully!')
 }
 
