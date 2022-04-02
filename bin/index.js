@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const yargs = require("yargs")(process.argv.slice(2));
+/*const yargs = require("yargs")(process.argv.slice(2));
 var hostile = require('hostile')
 const chalk = require("chalk");
 const boxen = require("boxen");
@@ -9,11 +9,32 @@ const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
 var AWS = require('aws-sdk')
+*/
+
+import yargs from"yargs";
+import hostile from 'hostile'
+import chalk from "chalk" ;
+import boxen from "boxen";
+import cmd from 'node-cmd';
+import fs from 'fs';
+import os from 'os';
+import child_process from 'child_process';
+import AWS from 'aws-sdk'
+import ora from 'ora';
 
 
+//*****************************
+// GLOBALS
+//*****************************
 let cenvConfig
 let configData
+let hostOS;
+const spinner = ora('Activating environment').start();
 
+
+//********************************
+// .cenv FILE CONFIG section 
+// ********************************
 try {
     configData = fs.readFileSync('.cenv');
 } catch (err) {
@@ -35,7 +56,7 @@ if (configData && configData.length > 0) {
 //UTILS section
 //***********************************
 
-getAllEnvs = () => {
+var getAllEnvs = () => {
     var envs = []
 
     for (const [key, value] of Object.entries(cenvConfig)) {
@@ -45,20 +66,20 @@ getAllEnvs = () => {
     return envs;
 }
 
-getProject = () => {
+var getProject = () => {
     var dirs = process.cwd().split('\\');
     return dirs[dirs.length - 1];
 }
 
-getOS = () => {
+var getOS = () => {
     const hostOS = os.platform;
-    console.log(`Detected OS as: ${hostOS}`);
+    spinner.stopAndPersist({symbol: '✔', text: `Detected OS as: ${hostOS}`}).start();
+    //console.log(`Detected OS as: ${hostOS}`);
     return hostOS;
 }
 
-const hostOS = getOS()
-
-function isCurrentUserRoot() {
+var isCurrentUserRoot = () => {
+    var isElevated = false
     if (process.platform !== 'win32') {
         return process.getuid == 0;
     }
@@ -78,7 +99,7 @@ function isCurrentUserRoot() {
 // HOSTS section
 //***********************************
 
-resetHosts = () => {
+var resetHosts = () => {
     var lines
     var hosts = []
 
@@ -101,20 +122,21 @@ resetHosts = () => {
     })
 }
 
-changeHosts = (url) => {
+var changeHosts = (url) => {
     if (url) {
         hostile.set('127.0.0.1', url, function (err) {
             if (err) {
                 console.error(err)
             } else {
-                console.log('hosts changed successfully!')
+                spinner.stopAndPersist({symbol: '✔', text: "Hosts changed successfully!"}).start();
+                //console.log('hosts changed successfully!')
             }
         })
 
     }
 }
 
-removeHosts = (url) => {
+var removeHosts = (url) => {
     if (url) {
         var lines
         try {
@@ -138,7 +160,7 @@ removeHosts = (url) => {
 // ENV VARS section
 //***********************************
 
-setEnvVars = (env) => {
+var setEnvVars = (env) => {
     var envVars = cenvConfig[env].envVars.plain;
 
     for (const [key, value] of Object.entries(envVars)) {
@@ -151,14 +173,18 @@ setEnvVars = (env) => {
         }
         cmd.runSync(command);
     }
-    console.log('environment variables changed successfully!')
+    spinner.stopAndPersist({symbol: '✔', text: "Environment variables changed successfully!"}).start()
+    //console.log('environment variables changed successfully!')
 }
 
-setSecretsEnvVars = (env) => {
-    if(!options.s) return;
+var setSecretsEnvVars = (env) => {
     var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
-    var secEnvVars = cenvConfig[env].envVars.secrets;
-    secEnvVars.forEach((secret) => {
+    var cloudSecrets = cenvConfig[env].envVars.secrets;
+    if(!cloudSecrets){
+        console.log("There were no secrets added for this environment, skipping")
+        return;
+    }
+    cloudSecrets.forEach((secret) => {
         //console.log(secret);
         client.getSecretValue({ SecretId: secret }, function (err, data) {
             if (err) {
@@ -177,14 +203,16 @@ setSecretsEnvVars = (env) => {
                     }
                     cmd.runSync(command);
                 }
-                console.log('secrets mounted to environment variables successfully')
+                spinner.stopAndPersist({symbol: '✔', text : "Secrets mounted to environment variables successfully!"})//.start();
+                //console.log('secrets mounted to environment variables successfully')
+                //spinner.stop();
             }
 
         })
     })
 }
 
-setActiveEnv = (environment) => {
+var setActiveEnv = (environment) => {
     var command = "";
 
     if (hostOS == 'linux') {
@@ -196,7 +224,7 @@ setActiveEnv = (environment) => {
     cmd.runSync(command);
 }
 
-getActiveEnv = () => {
+var getActiveEnv = () => {
     return process.env.ACTIVE_ENV;
 }
 
@@ -206,9 +234,11 @@ getActiveEnv = () => {
 //***********************************
 
 var setEnv = function (environment) {
+    hostOS = getOS();
     if (environment) {
         const message = `Activating ${options.env} environment for project ${getProject()}`;
-        console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
+        spinner.stopAndPersist({symbol: '✔', text : message}).start();
+        //console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
 
         const host = cenvConfig[environment].host;
         resetHosts();
@@ -218,13 +248,12 @@ var setEnv = function (environment) {
             throw new Error(`Please use valid env types: ${getAllEnvs()}`)
         }
         setEnvVars(environment);
-        setSecretsEnvVars(environment);
+        if(options.s) {setSecretsEnvVars(environment);}
         setActiveEnv(environment);
     }
-
 }
 
-showEnv = (getEnv) => {
+var showEnv = (getEnv) => {
     if (getEnv) {
         const message = `Current active environment is :: ${getActiveEnv()}`;
         console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
