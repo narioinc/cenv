@@ -1,5 +1,5 @@
 # cenv
-A Nodejs based CLI utility to change environment details on the fly for any project
+A Nodejs based CLI utility to "change environment" (and hence the name cenv) details on the fly for any project
 
 The purpose of this utility is to allow users to set environment details like environment variables, hosts files edits to ensure that developers can activate an environment quickly on their desktop for local development.
 
