@@ -16,9 +16,9 @@ cenv can be installed using the following command from the root of this project
 * for example `$> cenv --env DEV` can be exeucted to activate your dev environment 
 
 
-# BEWARE !! This tool needs ROOT 
-The tool tried to edits the hosts file in yoru OS to add an entry for 127.0.0.1 with the host DNS you specifiy in cenv
-This operation needs root. Please run this command under an elevated shell session in your OS
+# BEWARE, DRAGONS AHEAD.... !! This tool needs ROOT 
+cenv edits the hosts file in your OS to add an entry for 127.0.0.1 with the host DNS you specifiy in .cenv file
+This operation needs root. Please run this command under an elevated shell session in your OS. There are check in place to prevent this tool running under non-root/non-admin users
 
 # Supported OS
 For now cenv support 
