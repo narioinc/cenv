@@ -184,14 +184,16 @@ var setSecretsEnvVars = (env) => {
     var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
     var cloudSecrets = cenvConfig[env].envVars.secrets;
     if(!cloudSecrets){
-        console.log("There were no secrets added for this environment, skipping")
+        //console.log("There were no secrets added for this environment, skipping")
+        spinner.stopAndPersist({symbol: chalk.red('✖'), text : "There were no secrets added for this environment, skipping"});
         return;
     }
     cloudSecrets.forEach((secret) => {
         //console.log(secret);
         client.getSecretValue({ SecretId: secret }, function (err, data) {
             if (err) {
-                console.log("There was an issue processing your secrets, check configuration and try again.")
+                //console.log("There was an issue processing your secrets, check configuration and try again.")
+                spinner.stopAndPersist({symbol: '✖', text : "There was an issue processing your secrets, check configuration and try again."})
                 return;
             } else {
                 var secretsString = data.SecretString;
