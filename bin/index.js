@@ -73,7 +73,7 @@ var getProject = () => {
 
 var getOS = () => {
     const hostOS = os.platform;
-    spinner.stopAndPersist({symbol: '✔', text: `Detected OS as: ${hostOS}`}).start();
+    spinner.stopAndPersist({symbol: '✔', text: `Detected OS as: ${hostOS}`});
     //console.log(`Detected OS as: ${hostOS}`);
     return hostOS;
 }
@@ -123,12 +123,13 @@ var resetHosts = () => {
 }
 
 var changeHosts = (url) => {
+    spinner.start();
     if (url) {
         hostile.set('127.0.0.1', url, function (err) {
             if (err) {
                 console.error(err)
             } else {
-                spinner.stopAndPersist({symbol: '✔', text: "Hosts changed successfully!"}).start();
+                spinner.stopAndPersist({symbol: '✔', text: "Hosts changed successfully!"});
                 //console.log('hosts changed successfully!')
             }
         })
@@ -161,6 +162,7 @@ var removeHosts = (url) => {
 //***********************************
 
 var setEnvVars = (env) => {
+    spinner.start();
     var envVars = cenvConfig[env].envVars.plain;
 
     for (const [key, value] of Object.entries(envVars)) {
@@ -173,11 +175,12 @@ var setEnvVars = (env) => {
         }
         cmd.runSync(command);
     }
-    spinner.stopAndPersist({symbol: '✔', text: "Environment variables changed successfully!"}).start()
+    spinner.stopAndPersist({symbol: '✔', text: "Environment variables changed successfully!"});
     //console.log('environment variables changed successfully!')
 }
 
 var setSecretsEnvVars = (env) => {
+    spinner.start();
     var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
     var cloudSecrets = cenvConfig[env].envVars.secrets;
     if(!cloudSecrets){
@@ -203,9 +206,7 @@ var setSecretsEnvVars = (env) => {
                     }
                     cmd.runSync(command);
                 }
-                spinner.stopAndPersist({symbol: '✔', text : "Secrets mounted to environment variables successfully!"})//.start();
-                //console.log('secrets mounted to environment variables successfully')
-                //spinner.stop();
+                spinner.stopAndPersist({symbol: '✔', text : "Secrets mounted to environment variables successfully!"})
             }
 
         })
@@ -248,7 +249,9 @@ var setEnv = function (environment) {
             throw new Error(`Please use valid env types: ${getAllEnvs()}`)
         }
         setEnvVars(environment);
-        if(options.s) {setSecretsEnvVars(environment);}
+        if(options.s) {
+            setSecretsEnvVars(environment);
+        }
         setActiveEnv(environment);
     }
 }
