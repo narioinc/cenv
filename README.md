@@ -24,3 +24,14 @@ This operation needs root. Please run this command under an elevated shell sessi
 For now cenv support 
 * Linux - Ubuntu 18.04+, Debian 8+
 * Windows 10 and above
+
+# UPDATES:
+
+## v1.1.0
+* Support for AWS secrets to be mounted onto the local system as env vars.
+* .cenv sample file updated to show how to add aws secrets to a environment. the new cloud section allows for setting your cloud provider (for now AWS) and region
+
+## v1.0.0
+* Initial tool allows setting plaintext env vars to your local machine
+* also updates your hosts file entry to the DNS you specified for 127.0.0.1 address
+* cenv requires root to run
