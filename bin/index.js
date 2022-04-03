@@ -11,9 +11,9 @@ const child_process = require('child_process');
 var AWS = require('aws-sdk')
 */
 
-import yargs from"yargs";
+import yargs from "yargs";
 import hostile from 'hostile'
-import chalk from "chalk" ;
+import chalk from "chalk";
 import boxen from "boxen";
 import cmd from 'node-cmd';
 import fs from 'fs';
@@ -35,20 +35,22 @@ let spinner;
 //********************************
 // .cenv FILE CONFIG section 
 // ********************************
-try {
-    configData = fs.readFileSync('.cenv');
-} catch (err) {
-    const message = `.cenv file not found in current path`;
-    console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
-    process.exit();
-}
+var loadConfig = (path) => {
+    try {
+        configData = fs.readFileSync('.cenv');
+    } catch (err) {
+        const message = `.cenv file not found in current path`;
+        console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+        process.exit();
+    }
 
-if (configData && configData.length > 0) {
-    cenvConfig = JSON.parse(configData);
-} else {
-    const message = `.cenv file couldn't be processed....exiting`;
-    console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
-    process.exit();
+    if (configData && configData.length > 0) {
+        cenvConfig = JSON.parse(configData);
+    } else {
+        const message = `.cenv file couldn't be processed....exiting`;
+        console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+        process.exit();
+    }
 }
 
 
@@ -73,7 +75,7 @@ var getProject = () => {
 
 var getOS = () => {
     const hostOS = os.platform;
-    spinner.stopAndPersist({symbol: '✔', text: `Detected OS as: ${hostOS}`});
+    spinner.stopAndPersist({ symbol: '✔', text: `Detected OS as: ${hostOS}` });
     //console.log(`Detected OS as: ${hostOS}`);
     return hostOS;
 }
@@ -129,7 +131,7 @@ var changeHosts = (url) => {
             if (err) {
                 console.error(err)
             } else {
-                spinner.stopAndPersist({symbol: '✔', text: "Hosts changed successfully!"});
+                spinner.stopAndPersist({ symbol: '✔', text: "Hosts changed successfully!" });
                 //console.log('hosts changed successfully!')
             }
         })
@@ -175,7 +177,7 @@ var setEnvVars = (env) => {
         }
         cmd.runSync(command);
     }
-    spinner.stopAndPersist({symbol: '✔', text: "Environment variables changed successfully!"});
+    spinner.stopAndPersist({ symbol: '✔', text: "Environment variables changed successfully!" });
     //console.log('environment variables changed successfully!')
 }
 
@@ -183,9 +185,9 @@ var setSecretsEnvVars = (env) => {
     spinner.start();
     var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
     var cloudSecrets = cenvConfig[env].envVars.secrets;
-    if(!cloudSecrets){
+    if (!cloudSecrets) {
         //console.log("There were no secrets added for this environment, skipping")
-        spinner.stopAndPersist({symbol: chalk.red('✖'), text : "There were no secrets added for this environment, skipping"});
+        spinner.stopAndPersist({ symbol: chalk.red('✖'), text: "There were no secrets added for this environment, skipping" });
         return;
     }
     cloudSecrets.forEach((secret) => {
@@ -193,7 +195,7 @@ var setSecretsEnvVars = (env) => {
         client.getSecretValue({ SecretId: secret }, function (err, data) {
             if (err) {
                 //console.log("There was an issue processing your secrets, check configuration and try again.")
-                spinner.stopAndPersist({symbol: '✖', text : "There was an issue processing your secrets, check configuration and try again."})
+                spinner.stopAndPersist({ symbol: '✖', text: "There was an issue processing your secrets, check configuration and try again." })
                 return;
             } else {
                 var secretsString = data.SecretString;
@@ -208,7 +210,7 @@ var setSecretsEnvVars = (env) => {
                     }
                     cmd.runSync(command);
                 }
-                spinner.stopAndPersist({symbol: '✔', text : "Secrets mounted to environment variables successfully!"})
+                spinner.stopAndPersist({ symbol: '✔', text: "Secrets mounted to environment variables successfully!" })
             }
 
         })
@@ -241,8 +243,8 @@ var setEnv = function (environment) {
     hostOS = getOS();
     if (environment) {
         const message = `Activating ${options.env} environment for project ${getProject()}`;
-        spinner.stopAndPersist({symbol: '✔', text : message}).start();
-        
+        spinner.stopAndPersist({ symbol: '✔', text: message }).start();
+
         const host = cenvConfig[environment].host;
         resetHosts();
         if (getAllEnvs().includes(environment)) {
@@ -251,7 +253,7 @@ var setEnv = function (environment) {
             throw new Error(`Please use valid env types: ${getAllEnvs()}`)
         }
         setEnvVars(environment);
-        if(options.s) {
+        if (options.s) {
             setSecretsEnvVars(environment);
         }
         setActiveEnv(environment);
@@ -265,13 +267,15 @@ var showEnv = (getEnv) => {
     }
 }
 
-
+loadConfig("");
 const options = yargs
     .usage("Usage: --env <environment> <flags>")
     .option("env", { alias: "environment", describe: `The environment to activate. Choices are ${getAllEnvs()}`, type: "string", demandOption: false })
     .option("g", { alias: "get-environment", describe: `Show the current active environment`, type: "boolean", demandOption: false })
     .option("s", { alias: "secrets", describe: `Load secrets as well into environment variables`, type: "boolean", demandOption: false })
+    .option("c", { alias: "config", describe: `Load config from a disk location or URL. If not specified, read the .cenv file from the current directory`, type: "string", demandOption: false })
     .check((argv, options) => {
+        
         const envs = getAllEnvs();
 
         if (Object.keys(argv).length == 2) {
