@@ -27,8 +27,15 @@ For now cenv support
 
 # UPDATES:
 
+## v1.2.0
+* Added ability to load config from custom path using the -c or --config option
+* `$> cenv --env DEV -c "http:localhost:8080\cenv.json` will load a file called cenv.json from your local server. 
+* Just provide a file URL to a file hosted on a server or a file path which is local for the -c command. If nothing is provided, it will search the current directory for .cenv file by default
+* progress indicator and messages updated for better tracking of the tool's overall progress
+
 ## v1.1.0
 * Support for AWS secrets to be mounted onto the local system as env vars.
+* use the -s or --secret option to load the secrets mentioned in the cenv file. By default they will NOT be loaded
 * .cenv sample file updated to show how to add aws secrets to a environment. the new cloud section allows for setting your cloud provider (for now AWS) and region
 
 ## v1.0.0
