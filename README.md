@@ -15,6 +15,12 @@ cenv can be installed using the following command from the root of this project
 * Once created, just execute the command `cenv --env <environment_name>`. environment_name is what you give as immediate child attributes in the root of the .cenv JSON document. the sample cenv file shows how to create DEV, QA, STAGING etc
 * for example `$> cenv --env DEV` can be executed to activate your dev environment 
 
+## Run the program
+* Run `$> cenv` or `$> cenv --help` for bringing up help menu
+* Run `$> cenv -g` to get the current active environment
+* Run `$> cenv --env <environment name as in .cenv file>` to enable a particular env and its details 
+* Run `$> cenv --env <environment name as in .cenv file> -s` to additionally load secrets as well from the config file. currently support AWS Secrets ARN ONLY.
+* RUn `$> cenv -c <path to file or URL>` to load a local file from path or a online file using a URL (https and http both are supported). Its recommended to use HTTPS !! 
 
 # BEWARE, DRAGONS AHEAD.... !! This tool needs ROOT 
 cenv edits the hosts file in your OS to add an entry for 127.0.0.1 with the host DNS you specify in .cenv file
