@@ -21,6 +21,8 @@ import os from 'os';
 import child_process from 'child_process';
 import AWS from 'aws-sdk'
 import ora from 'ora';
+import lodash from 'lodash';
+import request from 'sync-request';
 
 
 //*****************************
@@ -35,22 +37,83 @@ let spinner;
 //********************************
 // .cenv FILE CONFIG section 
 // ********************************
-var loadConfig = (path) => {
-    try {
-        configData = fs.readFileSync('.cenv');
-    } catch (err) {
-        const message = `.cenv file not found in current path`;
+
+var loadHttpConfig = (url) => {
+    spinner.start();
+    var cloudConfig;
+    var res
+    try{
+        res = request('GET', url)
+    }catch(err){
+        spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
+        process.exit();
+    }
+    if(res && res.statusCode == 200){
+        try{
+            cloudConfig = JSON.parse(res.body);
+        }catch(err){
+            const message = `.cenv file couldn't be processed as valid JSON, please check the file and try again`;
+            console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+            spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
+            process.exit();
+        }
+        spinner.stopAndPersist({ symbol: '✔', text: `Loading file from ${url}` });
+        return cloudConfig;
+    }else{
+        const message = `.cenv file could not be downloaded from the given URL`;
         console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+        spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
         process.exit();
     }
 
-    if (configData && configData.length > 0) {
-        cenvConfig = JSON.parse(configData);
-    } else {
-        const message = `.cenv file couldn't be processed....exiting`;
-        console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
-        process.exit();
+    /*
+        if (!error && response.statusCode == 200) {
+            try{
+                cloudConfig = JSON.parse(body);
+            }catch(err){
+                const message = `.cenv file couldn't be processed as valid JSON, please check the file and try again`;
+                console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+                spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
+                process.exit();
+            }
+            spinner.stopAndPersist({ symbol: '✔', text: `Loading file from ${url}` });
+            return cloudConfig;
+        }else{
+            const message = `.cenv file could not be downloaded from the given URL`;
+            console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+            spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
+            process.exit();
+        }
+    })*/
+}
+
+var loadConfig = (path) => {
+    spinner.start()
+    if (path && path.toString().startsWith("http")) {
+        cenvConfig = loadHttpConfig(path)
+        //console.log(cenvConfig);
+    }else{
+        var fileLocation = path ? path : ".cenv";
+        try {
+            configData = fs.readFileSync(fileLocation);
+        } catch (err) {
+            console.log(err);
+            const message = `.cenv file not found in current path`;
+            console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+            spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${path ? path : "project root"}` });
+            process.exit();
+        }
+    
+        if (configData && configData.length > 0) {
+            cenvConfig = JSON.parse(configData);
+        } else {
+            const message = `.cenv file couldn't be processed....exiting`;
+            console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
+            spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${path ? path : "project root"}` });
+            process.exit();
+        }
     }
+
 }
 
 
@@ -60,9 +123,11 @@ var loadConfig = (path) => {
 
 var getAllEnvs = () => {
     var envs = []
-
+    try{
     for (const [key, value] of Object.entries(cenvConfig)) {
         envs.push(key);
+    }}catch(err){
+        console.log(err);
     }
 
     return envs;
@@ -76,7 +141,6 @@ var getProject = () => {
 var getOS = () => {
     const hostOS = os.platform;
     spinner.stopAndPersist({ symbol: '✔', text: `Detected OS as: ${hostOS}` });
-    //console.log(`Detected OS as: ${hostOS}`);
     return hostOS;
 }
 
@@ -132,7 +196,6 @@ var changeHosts = (url) => {
                 console.error(err)
             } else {
                 spinner.stopAndPersist({ symbol: '✔', text: "Hosts changed successfully!" });
-                //console.log('hosts changed successfully!')
             }
         })
 
@@ -178,7 +241,6 @@ var setEnvVars = (env) => {
         cmd.runSync(command);
     }
     spinner.stopAndPersist({ symbol: '✔', text: "Environment variables changed successfully!" });
-    //console.log('environment variables changed successfully!')
 }
 
 var setSecretsEnvVars = (env) => {
@@ -186,7 +248,6 @@ var setSecretsEnvVars = (env) => {
     var client = new AWS.SecretsManager({ region: cenvConfig[env].cloud.region });
     var cloudSecrets = cenvConfig[env].envVars.secrets;
     if (!cloudSecrets) {
-        //console.log("There were no secrets added for this environment, skipping")
         spinner.stopAndPersist({ symbol: chalk.red('✖'), text: "There were no secrets added for this environment, skipping" });
         return;
     }
@@ -194,7 +255,6 @@ var setSecretsEnvVars = (env) => {
         //console.log(secret);
         client.getSecretValue({ SecretId: secret }, function (err, data) {
             if (err) {
-                //console.log("There was an issue processing your secrets, check configuration and try again.")
                 spinner.stopAndPersist({ symbol: '✖', text: "There was an issue processing your secrets, check configuration and try again." })
                 return;
             } else {
@@ -239,7 +299,6 @@ var getActiveEnv = () => {
 //***********************************
 
 var setEnv = function (environment) {
-    spinner = ora('Activating environment').start();
     hostOS = getOS();
     if (environment) {
         const message = `Activating ${options.env} environment for project ${getProject()}`;
@@ -267,15 +326,21 @@ var showEnv = (getEnv) => {
     }
 }
 
-loadConfig("");
+//loadConfig();
+//loadHttpConfig("http://localhost:8080/cenv.json");
+spinner = ora();
 const options = yargs
     .usage("Usage: --env <environment> <flags>")
-    .option("env", { alias: "environment", describe: `The environment to activate. Choices are ${getAllEnvs()}`, type: "string", demandOption: false })
+    .option("env", { alias: "environment", describe: `The environment to activate as per your .cenv config file`, type: "string", demandOption: false })
     .option("g", { alias: "get-environment", describe: `Show the current active environment`, type: "boolean", demandOption: false })
     .option("s", { alias: "secrets", describe: `Load secrets as well into environment variables`, type: "boolean", demandOption: false })
-    .option("c", { alias: "config", describe: `Load config from a disk location or URL. If not specified, read the .cenv file from the current directory`, type: "string", demandOption: false })
+    .option("c", { alias: "config", describe: `Load config from a custom disk location or URL. If not specified, read the .cenv file from the current directory`, type: "string", demandOption: false })
     .check((argv, options) => {
-        
+        if (!isCurrentUserRoot()) {
+            console.log(boxen(chalk.red("Dragons ahead, need ROOT !!!")));
+            process.exit();
+        }
+        loadConfig(argv.c);
         const envs = getAllEnvs();
 
         if (Object.keys(argv).length == 2) {
@@ -293,11 +358,6 @@ const options = yargs
         return true;
     })
     .argv;
-
-if (!isCurrentUserRoot()) {
-    console.log(boxen(chalk.red("Dragons ahead, need ROOT !!!")));
-    process.exit();
-}
 
 setEnv(options.env)
 showEnv(options.g);
