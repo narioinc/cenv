@@ -42,16 +42,16 @@ var loadHttpConfig = (url) => {
     spinner.start();
     var cloudConfig;
     var res
-    try{
+    try {
         res = request('GET', url)
-    }catch(err){
+    } catch (err) {
         spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
         process.exit();
     }
-    if(res && res.statusCode == 200){
-        try{
+    if (res && res.statusCode == 200) {
+        try {
             cloudConfig = JSON.parse(res.body);
-        }catch(err){
+        } catch (err) {
             const message = `.cenv file couldn't be processed as valid JSON, please check the file and try again`;
             console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
             spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
@@ -59,7 +59,7 @@ var loadHttpConfig = (url) => {
         }
         spinner.stopAndPersist({ symbol: '✔', text: `Loading file from ${url}` });
         return cloudConfig;
-    }else{
+    } else {
         const message = `.cenv file could not be downloaded from the given URL`;
         console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
         spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
@@ -92,7 +92,7 @@ var loadConfig = (path) => {
     if (path && path.toString().startsWith("http")) {
         cenvConfig = loadHttpConfig(path)
         //console.log(cenvConfig);
-    }else{
+    } else {
         var fileLocation = path ? path : ".cenv";
         try {
             configData = fs.readFileSync(fileLocation);
@@ -103,7 +103,7 @@ var loadConfig = (path) => {
             spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${path ? path : "project root"}` });
             process.exit();
         }
-    
+
         if (configData && configData.length > 0) {
             cenvConfig = JSON.parse(configData);
         } else {
@@ -123,10 +123,11 @@ var loadConfig = (path) => {
 
 var getAllEnvs = () => {
     var envs = []
-    try{
-    for (const [key, value] of Object.entries(cenvConfig)) {
-        envs.push(key);
-    }}catch(err){
+    try {
+        for (const [key, value] of Object.entries(cenvConfig)) {
+            envs.push(key);
+        }
+    } catch (err) {
         console.log(err);
     }
 
@@ -320,9 +321,16 @@ var setEnv = function (environment) {
 }
 
 var showEnv = (getEnv) => {
+
     if (getEnv) {
-        const message = `Current active environment is :: ${getActiveEnv()}`;
-        console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
+        var activeEnv = getActiveEnv();
+        if (activeEnv && activeEnv.length > 0) {
+            const message = `Current active environment is :: ${getActiveEnv()}`;
+            console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
+        } else {
+            const message = `No active environment has been set. Please use the --env command to set an active environment`;
+            console.log(boxen(chalk.green(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'green' }));
+        }
     }
 }
 
