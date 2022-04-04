@@ -88,5 +88,4 @@ For now cenv support
 * Massive rewrite to make I/O calls async. This tool was created quickly for projects but if it is useful enough, better to make the code maintainable and "pluggable"
 * Introduce a pluggable architecture to add new workflows for environment setup. Like tomorrow, users can add their own logic before an after a workflows, environment lifecyle methods that can be overridden (before config load, after config load, before env activation, after env activation etc )
 * strict HTTPS only for URLs
-* check config file for content safety and adhering to the template definition 
 * security audit as this tool needs root permissions. 
