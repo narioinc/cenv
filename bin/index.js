@@ -24,6 +24,7 @@ import ora from 'ora';
 import lodash from 'lodash';
 import request from 'sync-request';
 import validate from './schema/validator.js';
+import { initWithCenv } from './config/config.js'
 
 
 //*****************************
@@ -101,7 +102,6 @@ var validateSchema = () => {
     //console.log("validated schema and got :: " + valid);
     return valid;
 }
-
 
 
 //***********************************
@@ -283,13 +283,6 @@ var getActiveEnv = () => {
 
 
 //***********************************
-// SCHEMA validations
-//***********************************
-
-
-
-
-//***********************************
 // Activate environment section
 //***********************************
 
@@ -328,32 +321,43 @@ var showEnv = (getEnv) => {
     }
 }
 
-//loadConfig();
-//loadHttpConfig("http://localhost:8080/cenv.json");
+
 spinner = ora();
 const options = yargs
-    .usage("Usage: --env <environment> <flags>")
+    .usage("Usage: --env <commands> <options>")
+    .command('init', 'Initialize the current project for use with cenv',
+        (yargs) => {
+            return yargs;
+        },
+        (argv) => {
+            initWithCenv();
+            process.exit();
+        })
     .option("env", { alias: "environment", describe: `The environment to activate as per your .cenv config file`, type: "string", demandOption: false })
     .option("g", { alias: "get-environment", describe: `Show the current active environment`, type: "boolean", demandOption: false })
     .option("s", { alias: "secrets", describe: `Load secrets as well into environment variables`, type: "boolean", demandOption: false })
     .option("c", { alias: "config", describe: `Load config from a custom disk location or URL. If not specified, read the .cenv file from the current directory`, type: "string", demandOption: false })
     .check((argv, options) => {
+        if (Object.keys(argv).length == 2 && argv._.length == 0) {
+            yargs.showHelp();
+            process.exit();
+        }
+
+        if(argv._.includes("init")){
+            return true;
+        }
+        
         if (!isCurrentUserRoot()) {
             console.log(boxen(chalk.red("Dragons ahead, need ROOT !!!")));
             process.exit();
         }
+        
         loadConfig(argv.c);
-        if(!validateSchema()){
+        if (!validateSchema()) {
             console.log(boxen(chalk.red("Schema of the .cenv is invalid, please check documentation or the provided cenv_sample file inside schema folder")));
             process.exit();
         }
-
         const envs = getAllEnvs();
-
-        if (Object.keys(argv).length == 2) {
-            yargs.showHelp();
-            process.exit();
-        }
 
         if (argv.env) {
             if (envs.includes(argv.env)) {

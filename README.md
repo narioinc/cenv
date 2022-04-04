@@ -5,13 +5,18 @@ The purpose of this utility is to allow users to set environment details like en
 
 # How to use the CLI tool
 
+## Pre-requisites
+* nodejs installed at an LTS version preferably 16.13.0 or above
+* AWS CLI installed with configuration done in case you want to use the aws secrets feature
+* Ability to run a command as root in Linux or administrator in Windows
+
 ## Install cenv
 cenv can be installed using the following command from the root of this project
 * `npm install -g .`
 
 ## Create a .cenv file in your project root
 * Irrespective of your project type and language used, just create a .cenv file at the root of your project
-* Use the sample cenv file provided in this repo for reference. Its pretty much self explanatory. Take a copy and rename it to .cenv and place it at the root of your project
+* Use the sample cenv file provided in this repo for reference (provided in the 'schema' folder) . Its pretty much self explanatory. Take a copy and rename it to .cenv and place it at the root of your project.
 * Once created, just execute the command `cenv --env <environment_name>`. environment_name is what you give as immediate child attributes in the root of the .cenv JSON document. the sample cenv file shows how to create DEV, QA, STAGING etc
 * for example `$> cenv --env DEV` can be executed to activate your dev environment 
 
@@ -20,7 +25,31 @@ cenv can be installed using the following command from the root of this project
 * Run `$> cenv -g` to get the current active environment
 * Run `$> cenv --env <environment name as in .cenv file>` to enable a particular env and its details 
 * Run `$> cenv --env <environment name as in .cenv file> -s` to additionally load secrets as well from the config file. currently support AWS Secrets ARN ONLY.
-* RUn `$> cenv -c <path to file or URL>` to load a local file from path or a online file using a URL (https and http both are supported). Its recommended to use HTTPS !! 
+* Run `$> cenv -c <path to file or URL>` to load a local file from path or a online file using a URL (https and http both are supported). Its recommended to use HTTPS !! 
+* Run `$> cenv init` to initialize the current directory with a stub .cenv file to get things started
+
+## Full command description
+
+```
+Usage: --env <commands> <options>
+
+Commands:
+    init  Initialize the current project for use with cenv
+
+Options:
+  --help                 Show help                                     [boolean]
+  --version              Show version number                           [boolean]
+  --env, --environment   The environment to activate as per your .cenv config
+                         file                                           [string]
+  -g, --get-environment  Show the current active environment           [boolean]
+  -s, --secrets          Load secrets as well into environment variables
+                                                                       [boolean]
+  -c, --config           Load config from a custom disk location or URL. If not
+                         specified, read the .cenv file from the current
+                         directory                                      [string]
+
+```
+
 
 # BEWARE, DRAGONS AHEAD.... !! This tool needs ROOT 
 cenv edits the hosts file in your OS to add an entry for 127.0.0.1 with the host DNS you specify in .cenv file
@@ -32,6 +61,10 @@ For now cenv support
 * Windows 10 and above
 
 # UPDATES:
+
+## v1.3.0
+* Added schema validations
+* Added new `init` command to initialize a project with a sample .cenv file which users can edit.
 
 ## v1.2.0
 * Added ability to load config from custom path using the -c or --config option

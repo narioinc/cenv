@@ -4,7 +4,7 @@
             "provider": "aws",
             "region": "us-east-2" 
         },
-        "host": "dev_hostname",
+        "host": "dev_hostname.com",
         "envVars": {
             "plain": {
                 "var1": "dev_value",
@@ -20,7 +20,7 @@
             "provider": "aws",
             "region": "us-east-2" 
         },
-        "host": "qa_hostname",
+        "host": "qa_hostname.com",
         "envVars": {
             "plain": {
                 "var1": "qa_value",
@@ -36,7 +36,7 @@
             "provider": "aws",
             "region": "us-east-2" 
         },
-        "host": "staging_hostname",
+        "host": "staging_hostname.com",
         "envVars": {
             "plain": {
                 "var1": "staging_value",
