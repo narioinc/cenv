@@ -23,6 +23,7 @@ import AWS from 'aws-sdk'
 import ora from 'ora';
 import lodash from 'lodash';
 import request from 'sync-request';
+import validate from './schema/validator.js';
 
 
 //*****************************
@@ -65,33 +66,12 @@ var loadHttpConfig = (url) => {
         spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
         process.exit();
     }
-
-    /*
-        if (!error && response.statusCode == 200) {
-            try{
-                cloudConfig = JSON.parse(body);
-            }catch(err){
-                const message = `.cenv file couldn't be processed as valid JSON, please check the file and try again`;
-                console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
-                spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
-                process.exit();
-            }
-            spinner.stopAndPersist({ symbol: '✔', text: `Loading file from ${url}` });
-            return cloudConfig;
-        }else{
-            const message = `.cenv file could not be downloaded from the given URL`;
-            console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
-            spinner.stopAndPersist({ symbol: '✖', text: `Loading file from ${url}` });
-            process.exit();
-        }
-    })*/
 }
 
 var loadConfig = (path) => {
-    spinner.start()
+    spinner.start("Loading config file");
     if (path && path.toString().startsWith("http")) {
         cenvConfig = loadHttpConfig(path)
-        //console.log(cenvConfig);
     } else {
         var fileLocation = path ? path : ".cenv";
         try {
@@ -106,6 +86,7 @@ var loadConfig = (path) => {
 
         if (configData && configData.length > 0) {
             cenvConfig = JSON.parse(configData);
+            spinner.stopAndPersist({ symbol: '✔', text: `Loading file from ${path ? path : "project root"}` });
         } else {
             const message = `.cenv file couldn't be processed....exiting`;
             console.log(boxen(chalk.red(message), { textAlignment: "center", title: "cenv", titleAlignment: 'center', padding: 1, borderColor: 'red' }));
@@ -113,8 +94,14 @@ var loadConfig = (path) => {
             process.exit();
         }
     }
-
 }
+
+var validateSchema = () => {
+    const valid = validate(cenvConfig);
+    //console.log("validated schema and got :: " + valid);
+    return valid;
+}
+
 
 
 //***********************************
@@ -296,6 +283,13 @@ var getActiveEnv = () => {
 
 
 //***********************************
+// SCHEMA validations
+//***********************************
+
+
+
+
+//***********************************
 // Activate environment section
 //***********************************
 
@@ -349,6 +343,11 @@ const options = yargs
             process.exit();
         }
         loadConfig(argv.c);
+        if(!validateSchema()){
+            console.log(boxen(chalk.red("Schema of the .cenv is invalid, please check documentation or the provided cenv_sample file inside schema folder")));
+            process.exit();
+        }
+
         const envs = getAllEnvs();
 
         if (Object.keys(argv).length == 2) {

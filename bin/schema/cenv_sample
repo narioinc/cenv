@@ -1,0 +1,66 @@
+{
+    "DEV": {
+        "cloud":{
+            "provider": "aws",
+            "region": "us-east-2" 
+        },
+        "host": "dev_hostname",
+        "envVars": {
+            "plain": {
+                "var1": "dev_value",
+                "var2": "dev_value"
+            },
+            "secrets":[
+                "secret_arn if using AWS"
+            ]
+        }
+    },
+    "QA": {
+        "cloud":{
+            "provider": "aws",
+            "region": "us-east-2" 
+        },
+        "host": "qa_hostname",
+        "envVars": {
+            "plain": {
+                "var1": "qa_value",
+                "var2": "qa_value"
+            },
+            "secrets":[
+                "secret_arn if using AWS"
+            ]
+        }
+    },
+    "STAGING": {
+        "cloud":{
+            "provider": "aws",
+            "region": "us-east-2" 
+        },
+        "host": "staging_hostname",
+        "envVars": {
+            "plain": {
+                "var1": "staging_value",
+                "var2": "staging_value"
+            },
+            "secrets":[
+                "secret_arn if using AWS"
+            ]
+        }
+    },
+    "LOCAL": {
+        "cloud":{
+            "provider": "aws",
+            "region": "us-east-2" 
+        },
+        "host": "localhost",
+        "envVars": {
+            "plain": {
+                "var1": "local_value",
+                "var2": "local_value"
+            },
+            "secrets":[
+                "secret_arn if using AWS"
+            ]
+        }
+    }
+}
