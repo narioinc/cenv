@@ -16,6 +16,7 @@ cenv can be installed using the following command from the root of this project
 
 ## Create a .cenv file in your project root
 * Irrespective of your project type and language used, just create a .cenv file at the root of your project
+* Optionally, you can now use the `cenv init` command to create a .cenv stub file and get things kick-started quicker. 
 * Use the sample cenv file provided in this repo for reference (provided in the 'schema' folder) . Its pretty much self explanatory. Take a copy and rename it to .cenv and place it at the root of your project.
 * Once created, just execute the command `cenv --env <environment_name>`. environment_name is what you give as immediate child attributes in the root of the .cenv JSON document. the sample cenv file shows how to create DEV, QA, STAGING etc
 * for example `$> cenv --env DEV` can be executed to activate your dev environment 
