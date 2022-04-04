@@ -56,6 +56,10 @@ Options:
 cenv edits the hosts file in your OS to add an entry for 127.0.0.1 with the host DNS you specify in .cenv file
 This operation needs root. Please run this command under an elevated shell session in your OS. There are check in place to prevent this tool running under non-root/non-admin users
 
+# cenv and Version control systems
+* DO NOT checkin the .cenv file to your VCS. Ensure that you add it to your .gitignore file.
+* If there is a need to share a common .cenv file amongst devs, Please host it on a server and use the -c or --config options to load the file from the URL. 
+
 # Supported OS
 For now cenv support 
 * Linux - Ubuntu 18.04+, Debian 8+
