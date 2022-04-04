@@ -44,7 +44,7 @@ function initWithCenv() {
     }else{
         try {
             fs.writeFileSync('.cenv', JSON.stringify(content, null, 4))
-            configSpinner.stopAndPersist({ symbol: '✔', text: ".cenv file created successfully" })
+            configSpinner.stopAndPersist({ symbol: '✔', text: ".cenv file created successfully, please edit the file before activating the environments" })
           } catch (err) {
             configSpinner.stopAndPersist({ symbol: '✖', text: ".cenv could not be created, please try again." })
           }

@@ -26,7 +26,7 @@ cenv can be installed using the following command from the root of this project
 * Run `$> cenv --env <environment name as in .cenv file>` to enable a particular env and its details 
 * Run `$> cenv --env <environment name as in .cenv file> -s` to additionally load secrets as well from the config file. currently support AWS Secrets ARN ONLY.
 * Run `$> cenv -c <path to file or URL>` to load a local file from path or a online file using a URL (https and http both are supported). Its recommended to use HTTPS !! 
-* Run `$> cenv init` to initialize the current directory with a stub .cenv file to get things started
+* Run `$> cenv init` to initialize the current directory with a stub .cenv file to get things started. Please do make the necessary changes before using the .cenv file
 
 ## Full command description
 
